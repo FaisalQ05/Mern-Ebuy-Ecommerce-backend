@@ -14,7 +14,6 @@ const createUser = async (req, res) => {
 }
 
 const login = async (req, res) => {
-  console.log("Login")
   const { email, password } = req.body
   const findUser = await User.findOne({ email: email.toLowerCase() }).exec()
   if (findUser && (await findUser.isPasswordMatched(password))) {
@@ -63,6 +62,34 @@ const handelRefresh = async (req, res) => {
     const accessToken = generateAccessToken(user._id)
     res.json({ accessToken })
   })
+}
+
+const logout = async (req, res) => {
+  const cookie = req.cookies
+  if (!cookie?.refreshToken) {
+    return res
+      .status(401)
+      .json({ message: "Unauthorized .. did not found cookies" })
+  }
+  const refreshToken = cookie.refreshToken
+  const user = await User.findOne({ refreshToken })
+  if (!user) {
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+    })
+    return res.sendStatus(204)
+  }
+  await User.findOneAndUpdate(refreshToken, {
+    refreshToken: "",
+  })
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+  })
+  return res.json({ message: "Logout Success" })
 }
 
 const getAllUser = async (req, res) => {
@@ -156,4 +183,5 @@ module.exports = {
   blockUser,
   unblockUser,
   handelRefresh,
+  logout,
 }
