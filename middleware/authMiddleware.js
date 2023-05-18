@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken")
 const User = require("../model/userModel")
 
 const authMiddleware = (req, res, next) => {
+  
   const authHeaders = req.headers.authorization || req.headers.Authoriation
   if (!authHeaders?.startsWith("Bearer")) {
     return res.status(401).json({

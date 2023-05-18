@@ -69,7 +69,7 @@ var userSchema = new mongoose.Schema(
     },
     weishList: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "product",
+      ref: "products",
     },
     refreshToken: {
       type: String,

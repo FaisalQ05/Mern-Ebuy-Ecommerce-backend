@@ -46,6 +46,7 @@ const login = async (req, res) => {
 }
 
 const handelRefresh = async (req, res) => {
+  console.log("Refresh")
   const cookie = req.cookies
   if (!cookie?.refreshToken) {
     return res
@@ -105,9 +106,9 @@ const getSingleUser = async (req, res) => {
   const { id } = req.params
   validateMongoDbId(id)
 
-  const allUsers = await User.findById(id).select("-password").lean()
-  if (allUsers) {
-    return res.json(allUsers)
+  const singleUser = await User.findById(id).select("-password").lean()
+  if (singleUser) {
+    return res.json(singleUser)
   } else {
     throw new Error("No user Found")
   }
