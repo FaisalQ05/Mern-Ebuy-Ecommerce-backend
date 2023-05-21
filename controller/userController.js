@@ -1,10 +1,12 @@
 const jwt = require("jsonwebtoken")
+const crypto = require("crypto")
 const {
   generateAccessToken,
   generateRefreshToken,
 } = require("../config/jwtToken")
 const User = require("../model/userModel")
 const { validateMongoDbId } = require("../utils/validateMongodbId")
+const { sendMail } = require("./emailController")
 
 const createUser = async (req, res) => {
   const { email } = req.body
@@ -174,6 +176,58 @@ const unblockUser = async (req, res) => {
   return res.json(user)
 }
 
+const updatePassword = async (req, res) => {
+  const { _id } = req.user
+  const { password } = req.body
+  validateMongoDbId(_id)
+  const user = await User.findById(_id)
+  if (password) {
+    user.password = password
+    const updatedPassword = await user.save()
+    res.json(updatedPassword)
+  } else {
+    res
+      .status(400)
+      .json({ message: "Please Enter Password to update", isError: true })
+  }
+}
+
+const forgotPasswordToken = async (req, res) => {
+  const { email } = req.body
+  const user = await User.findOne({ email })
+  if (!user) throw new Error("User not found with this email")
+  const token = await user.createPasswordResetToken()
+  await user.save()
+  const resetUrl = `Hi please follow this link to reset your password . This link is valid till 10 minutes from now. <a href='http://localhost:4000/api/user/reset-password/${token}'>Click here</a>`
+  const data = {
+    to: email,
+    text: "Hey user",
+    subject: "Forgot Password Link",
+    html: resetUrl,
+  }
+  sendMail(data)
+  res.json({ token })
+}
+
+const resetPassword = async (req, res) => {
+  const { password } = req.body
+  const { token } = req.params
+  
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex")
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  })
+  if (!user) {
+    throw new Error("Token Expired , Please try again later")
+  }
+  user.password = password
+  user.passwordResetToken = undefined
+  user.passwordResetExpires = undefined
+  await user.save()
+  res.json({ message: "Password changed Successfully" })
+}
+
 module.exports = {
   createUser,
   login,
@@ -185,4 +239,7 @@ module.exports = {
   unblockUser,
   handelRefresh,
   logout,
+  updatePassword,
+  forgotPasswordToken,
+  resetPassword,
 }

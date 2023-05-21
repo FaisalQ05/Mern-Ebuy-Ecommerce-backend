@@ -7,6 +7,7 @@ const morgan = require("morgan")
 
 const authRoute = require("./routes/authRoute")
 const productRoute = require("./routes/productRoute")
+const blogRoute = require("./routes/blogRoute")
 const connectDB = require("./config/dbConnect")
 const { errorHandler } = require("./middleware/errorHandler")
 const { logEvents, logger } = require("./middleware/logger")
@@ -19,18 +20,17 @@ connectDB()
 
 console.log(process.env.NODE_ENV)
 
-app.use(morgan('dev'))
+app.use(morgan("dev"))
 app.use(logger)
 
 //Body parser for Json
 app.use(express.json())
 app.use(cookieParser())
 
-
-
 //Api routes
 app.use("/api/user", authRoute)
 app.use("/api/product", productRoute)
+app.use("/api/blog", blogRoute)
 
 app.all("*", (req, res) => {
   res.status(404)

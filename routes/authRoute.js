@@ -11,12 +11,18 @@ const {
   unblockUser,
   handelRefresh,
   logout,
+  updatePassword,
+  forgotPasswordToken,
+  resetPassword,
 } = require("../controller/userController")
 const { isAdmin, authMiddleware } = require("../middleware/authMiddleware")
 
 router.post("/register", createUser)
 router.post("/login", login)
 router.get("/", getAllUser)
+router.post("/update-password", authMiddleware, updatePassword)
+router.post("/forgot-password-token", forgotPasswordToken)
+router.post("/reset-password/:token", resetPassword)
 
 // router.post("/register", createUser)
 // router.route("/login").post(login)
@@ -26,7 +32,6 @@ router
   .get(authMiddleware, isAdmin, getSingleUser)
   .delete(deleteUser)
   .put(authMiddleware, updateUser)
-
 
 router.use(authMiddleware, isAdmin)
 
