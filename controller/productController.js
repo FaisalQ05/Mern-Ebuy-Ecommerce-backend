@@ -1,5 +1,6 @@
 const slugify = require("slugify")
 const Product = require("../model/productModel")
+const User = require("../model/userModel")
 const { validateMongoDbId } = require("../utils/validateMongodbId")
 
 const createProduct = async (req, res) => {
@@ -105,10 +106,109 @@ const getAllProduct = async (req, res) => {
   }
 }
 
+const addToWishList = async (req, res) => {
+  console.log("Add to fav")
+  const { _id } = req.user
+  const { prodId } = req.body
+  const findProd = await Product.findById(prodId).lean().exec()
+  if (!findProd) throw new Error("Product not exist")
+  if (!prodId || validateMongoDbId(prodId)) {
+    throw new Error("Valid prodId required")
+  }
+  const user = await User.findById(_id)
+  const alreadAdded = user.wishList.find((id) => id.toString() === prodId)
+  if (alreadAdded) {
+    // let user = await User.findByIdAndUpdate(
+    //   _id,
+    //   {
+    //     $pull: { wishList: prodId },
+    //   },
+    //   { new: true }
+    // )
+    // res.json(user)
+
+    user.wishList.pop(prodId)
+  } else {
+    user.wishList.push(prodId)
+    // let user = await User.findByIdAndUpdate(
+    //   _id,
+    //   {
+    //     $push: { wishList: prodId },
+    //   },
+    //   { new: true }
+    // )
+    // res.json(user)
+  }
+  const updateUser = await user.save()
+  res.json(updateUser)
+}
+
+const rating = async (req, res) => {
+  console.log("Rating")
+  const { _id } = req.user
+  const { star, prodId, comment } = req.body
+  if (!prodId || validateMongoDbId(prodId))
+    throw new Error("Enter product valid id")
+  const product = await Product.findById(prodId)
+  if (!product) throw new Error("No product found")
+  if (!star) throw new Error("Please Submit the rating Star")
+  let alreadyRated = product.ratings.find(
+    (userId) => userId.postedBy.toString() === _id.toString()
+  )
+  if (alreadyRated) {
+    // console.log(alreadyRated)
+    // console.log("Rating : ", product.ratings)
+    // const newArray = product.ratings.map((item) =>
+    //   item.postedBy.toString() === alreadyRated.postedBy.toString()
+    //     ? { star: star, postedBy: item.postedBy, _id: item._id }
+    //     : item
+    // )
+    // console.log("New arrray : ", newArray)
+    const updateRating = await Product.updateOne(
+      {
+        ratings: { $elemMatch: alreadyRated },
+      },
+      { $set: { "ratings.$.star": star, "ratings.$.comment": comment } },
+      { new: true }
+    )
+    // res.json(updateRating)
+  } else {
+    product.ratings.push({ star, postedBy: _id, comment })
+    const updateProduct = await product.save()
+    // const rateProduct = await Product.findByIdAndUpdate(
+    //   prodId,
+    //   {
+    //     $push: {
+    //       ratings: {
+    //         star: star,
+    //         postedBy: _id,
+    //       },
+    //     },
+    //   },
+    //   { new: true }
+    // )
+    // res.json(updateProduct)
+  }
+  const getAllRatings = await Product.findById(prodId)
+  let totalRating = getAllRatings.ratings.length
+  let ratingSum = getAllRatings.ratings
+    .map((item) => item.star)
+    .reduce((prev, curr) => prev + curr, 0)
+  let acutalRating = Math.round(ratingSum / totalRating)
+  let finalProduct = await Product.findByIdAndUpdate(
+    prodId,
+    { totalrating: acutalRating },
+    { new: true }
+  )
+  res.json(finalProduct)
+}
+
 module.exports = {
   createProduct,
   getSingleProduct,
   getAllProduct,
   updateProduct,
   deleteProduct,
+  addToWishList,
+  rating,
 }

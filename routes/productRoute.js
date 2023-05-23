@@ -6,12 +6,16 @@ const {
   getAllProduct,
   updateProduct,
   deleteProduct,
+  addToWishList,
+  rating,
 } = require("../controller/productController")
 const { authMiddleware, isAdmin } = require("../middleware/authMiddleware")
 const router = express.Router()
 
 router.get("/", getAllProduct)
 router.get("/:id", getSingleProduct)
+router.put("/wishList", authMiddleware, addToWishList)
+router.put("/rating", authMiddleware, rating)
 
 router.use(authMiddleware, isAdmin)
 

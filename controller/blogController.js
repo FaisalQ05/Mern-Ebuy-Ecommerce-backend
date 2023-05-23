@@ -30,7 +30,10 @@ const updateBlog = async (req, res) => {
 const getBlog = async (req, res) => {
   const { id } = req.params
   validateMongoDbId(id)
-  const blog = await Blog.findById(id).exec()
+  const blog = await Blog.findById(id)
+    .populate("likes")
+    .populate("disLikes")
+    .exec()
   if (!blog) throw new Error("No Blog found")
   blog.numViews = blog.numViews + 1
   const updatedBlog = await blog.save()
@@ -74,8 +77,9 @@ const likeBlog = async (req, res) => {
   const isLiked = blog?.isLiked
 
   const alreadyDisliked = blog?.disLikes?.find(
-    (userId) => userId?.toString() === loginUserId?.toString
+    (userId) => userId?.toString() === loginUserId?.toString()
   )
+  console.log(alreadyDisliked)
   if (alreadyDisliked) {
     console.log("Condition 1")
     const blog = await Blog.findByIdAndUpdate(
@@ -86,7 +90,7 @@ const likeBlog = async (req, res) => {
       },
       { new: true }
     )
-    res.json(blog)
+    // res.json(blog)
   }
   if (isLiked) {
     console.log("Condition 2")
@@ -122,11 +126,23 @@ const dislikeBlog = async (req, res) => {
   const loginUserId = req?.user?._id
   const isDisliked = blog?.isDisLiked
 
-  const alreadyDisliked = blog?.disLikes?.find(
-    (userId) => userId?.toString() === loginUserId?.toString
+  const alreadyLiked = blog?.likes?.find(
+    (userId) => userId?.toString() === loginUserId?.toString()
   )
-  if (alreadyDisliked) {
+  if (alreadyLiked) {
     console.log("Condition 1")
+    const blog = await Blog.findByIdAndUpdate(
+      blogId,
+      {
+        $pull: { likes: loginUserId },
+        isLiked: false,
+      },
+      { new: true }
+    )
+    // res.json(blog)
+  }
+  if (isDisliked) {
+    console.log("Condition 2")
     const blog = await Blog.findByIdAndUpdate(
       blogId,
       {
@@ -136,25 +152,13 @@ const dislikeBlog = async (req, res) => {
       { new: true }
     )
     res.json(blog)
-  }
-  if (isLiked) {
-    console.log("Condition 2")
-    const blog = await Blog.findByIdAndUpdate(
-      blogId,
-      {
-        $pull: { likes: loginUserId },
-        isLiked: false,
-      },
-      { new: true }
-    )
-    res.json(blog)
   } else {
     console.log("Condition 3")
     const blog = await Blog.findByIdAndUpdate(
       blogId,
       {
-        $push: { likes: loginUserId },
-        isLiked: true,
+        $push: { disLikes: loginUserId },
+        isDisLiked: true,
       },
       { new: true }
     )
@@ -169,4 +173,5 @@ module.exports = {
   getAllBlog,
   deleteBlog,
   likeBlog,
+  dislikeBlog,
 }

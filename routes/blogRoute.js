@@ -7,6 +7,7 @@ const {
   getAllBlog,
   deleteBlog,
   likeBlog,
+  dislikeBlog,
 } = require("../controller/blogController")
 const router = express.Router()
 
@@ -15,6 +16,7 @@ router.put("/:id", authMiddleware, isAdmin, updateBlog)
 router.get("/:id", getBlog)
 router.get("/", getAllBlog)
 router.delete("/:id", authMiddleware, isAdmin, deleteBlog)
-router.put("/:blogId/likes", authMiddleware, isAdmin, likeBlog)
+router.put("/likes/:blogId", authMiddleware, isAdmin, likeBlog)
+router.put("/dislikes/:blogId", authMiddleware, isAdmin, dislikeBlog)
 
 module.exports = router

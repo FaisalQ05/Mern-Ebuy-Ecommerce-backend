@@ -212,7 +212,7 @@ const forgotPasswordToken = async (req, res) => {
 const resetPassword = async (req, res) => {
   const { password } = req.body
   const { token } = req.params
-  
+
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex")
   const user = await User.findOne({
     passwordResetToken: hashedToken,
@@ -228,6 +228,7 @@ const resetPassword = async (req, res) => {
   res.json({ message: "Password changed Successfully" })
 }
 
+
 module.exports = {
   createUser,
   login,
@@ -241,5 +242,5 @@ module.exports = {
   logout,
   updatePassword,
   forgotPasswordToken,
-  resetPassword,
+  resetPassword
 }
