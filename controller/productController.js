@@ -203,6 +203,10 @@ const rating = async (req, res) => {
   res.json(finalProduct)
 }
 
+const uploadImages = async (req, res) => {
+  console.log(req.files)
+}
+
 module.exports = {
   createProduct,
   getSingleProduct,
@@ -211,4 +215,5 @@ module.exports = {
   deleteProduct,
   addToWishList,
   rating,
+  uploadImages
 }

@@ -1,6 +1,7 @@
 const { logEvents } = require("./logger")
 
 const errorHandler = (error, req, res, next) => {
+  // console.log(error)
   logEvents(
     `${error.name}\t${error.message}\t${req.method}\t${req.url}\t`,
     "ErrorLogs.log"

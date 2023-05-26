@@ -11,6 +11,7 @@ const blogRoute = require("./routes/blogRoute")
 const categoryRoute = require("./routes/prodCategoryRoute")
 const blogCatRoute = require("./routes/blogCatRoute")
 const brandRoute = require("./routes/brandRoute")
+const coupenRoute = require("./routes/coupenRoute")
 
 const connectDB = require("./config/dbConnect")
 const { errorHandler } = require("./middleware/errorHandler")
@@ -38,6 +39,7 @@ app.use("/api/blog", blogRoute)
 app.use("/api/category", categoryRoute)
 app.use("/api/blogcategory", blogCatRoute)
 app.use("/api/brand", brandRoute)
+app.use("/api/coupen", coupenRoute)
 
 app.all("*", (req, res) => {
   res.status(404)
