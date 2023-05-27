@@ -2,6 +2,7 @@ const slugify = require("slugify")
 const Product = require("../model/productModel")
 const User = require("../model/userModel")
 const { validateMongoDbId } = require("../utils/validateMongodbId")
+const { cloudinaryUploadImage } = require("../utils/cloudinary")
 
 const createProduct = async (req, res) => {
   const { title } = req.body
@@ -205,6 +206,20 @@ const rating = async (req, res) => {
 
 const uploadImages = async (req, res) => {
   console.log(req.files)
+  const uploader = (path) => cloudinaryUploadImage(path, "images")
+  const urls = []
+  const files = req.files
+  for (const file of files) {
+    const { path } = file
+    const newpath = await uploader(path)
+    console.log(newpath)
+    urls.push(newpath)
+    fs.unlinkSync(path)
+  }
+  const images = urls.map((file) => {
+    return file
+  })
+  res.json(images)
 }
 
 module.exports = {
@@ -215,5 +230,5 @@ module.exports = {
   deleteProduct,
   addToWishList,
   rating,
-  uploadImages
+  uploadImages,
 }
