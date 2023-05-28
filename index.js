@@ -3,7 +3,7 @@ require("express-async-errors")
 const express = require("express")
 const { default: mongoose } = require("mongoose")
 const cookieParser = require("cookie-parser")
-const morgan = require("morgan")
+// const morgan = require("morgan")
 const cors = require("cors")
 
 const corsOptions = require("./config/corsOptions")
@@ -25,10 +25,10 @@ const PORT = process.env.PORT || 4000
 //Database Connect
 connectDB()
 
-console.log(process.env.NODE_ENV)
+console.log("checking : ", process.env.NODE_ENV)
 
 app.use(cors(corsOptions))
-app.use(morgan("dev"))
+// app.use(morgan("dev"))
 app.use(logger)
 
 //Body parser for Json
