@@ -4,7 +4,9 @@ const express = require("express")
 const { default: mongoose } = require("mongoose")
 const cookieParser = require("cookie-parser")
 const morgan = require("morgan")
+const cors = require("cors")
 
+const corsOptions = require("./config/corsOptions")
 const authRoute = require("./routes/authRoute")
 const productRoute = require("./routes/productRoute")
 const blogRoute = require("./routes/blogRoute")
@@ -25,6 +27,7 @@ connectDB()
 
 console.log(process.env.NODE_ENV)
 
+app.use(cors(corsOptions))
 app.use(morgan("dev"))
 app.use(logger)
 
