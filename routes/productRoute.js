@@ -15,6 +15,7 @@ const {
   uploadPhoto,
   productImageResize,
 } = require("../middleware/uploadImages")
+
 const router = express.Router()
 
 router.get("/", getAllProduct)
@@ -24,18 +25,10 @@ router.put("/rating", authMiddleware, rating)
 
 router.use(authMiddleware, isAdmin)
 
-router.put(
-  "/upload/:id",
-  uploadPhoto.array("images", 3),
-  productImageResize,
-  uploadImages
-)
+router.put("/upload/:id", uploadPhoto.array("images", 3),productImageResize, uploadImages)
 
 router.post("/", createProduct)
 
-router
-  .route("/:id")
-  .put(authMiddleware, isAdmin, updateProduct)
-  .delete(authMiddleware, isAdmin, deleteProduct)
+router.route("/:id").put(updateProduct).delete(deleteProduct)
 
 module.exports = router

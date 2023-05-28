@@ -68,7 +68,6 @@ const deleteBlog = async (req, res) => {
 }
 
 const likeBlog = async (req, res) => {
-  console.log("like blog")
   const { blogId } = req.params
   if (!blogId) throw new Error("Blog id is required")
   validateMongoDbId(blogId)
@@ -79,9 +78,7 @@ const likeBlog = async (req, res) => {
   const alreadyDisliked = blog?.disLikes?.find(
     (userId) => userId?.toString() === loginUserId?.toString()
   )
-  console.log(alreadyDisliked)
   if (alreadyDisliked) {
-    console.log("Condition 1")
     const blog = await Blog.findByIdAndUpdate(
       blogId,
       {
@@ -93,7 +90,6 @@ const likeBlog = async (req, res) => {
     // res.json(blog)
   }
   if (isLiked) {
-    console.log("Condition 2")
     const blog = await Blog.findByIdAndUpdate(
       blogId,
       {
@@ -104,7 +100,6 @@ const likeBlog = async (req, res) => {
     )
     res.json(blog)
   } else {
-    console.log("Condition 3")
     const blog = await Blog.findByIdAndUpdate(
       blogId,
       {
@@ -118,7 +113,6 @@ const likeBlog = async (req, res) => {
 }
 
 const dislikeBlog = async (req, res) => {
-  console.log("Dis like blog")
   const { blogId } = req.params
   if (!blogId) throw new Error("Blog id is required")
   validateMongoDbId(blogId)
@@ -130,7 +124,6 @@ const dislikeBlog = async (req, res) => {
     (userId) => userId?.toString() === loginUserId?.toString()
   )
   if (alreadyLiked) {
-    console.log("Condition 1")
     const blog = await Blog.findByIdAndUpdate(
       blogId,
       {
@@ -142,7 +135,6 @@ const dislikeBlog = async (req, res) => {
     // res.json(blog)
   }
   if (isDisliked) {
-    console.log("Condition 2")
     const blog = await Blog.findByIdAndUpdate(
       blogId,
       {
@@ -153,7 +145,6 @@ const dislikeBlog = async (req, res) => {
     )
     res.json(blog)
   } else {
-    console.log("Condition 3")
     const blog = await Blog.findByIdAndUpdate(
       blogId,
       {

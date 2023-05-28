@@ -20,7 +20,7 @@ const { isAdmin, authMiddleware } = require("../middleware/authMiddleware")
 router.post("/register", createUser)
 router.post("/login", login)
 router.get("/", getAllUser)
-router.post("/update-password", authMiddleware, updatePassword)
+router.put("/update-password", authMiddleware, updatePassword)
 router.post("/forgot-password-token", forgotPasswordToken)
 router.post("/reset-password/:token", resetPassword)
 
@@ -31,7 +31,8 @@ router
   .route("/:id")
   .get(authMiddleware, isAdmin, getSingleUser)
   .delete(deleteUser)
-  .put(authMiddleware, updateUser)
+
+router.put("/", authMiddleware, updateUser)
 
 router.use(authMiddleware, isAdmin)
 

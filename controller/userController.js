@@ -17,10 +17,11 @@ const createUser = async (req, res) => {
 
 const login = async (req, res) => {
   const { email, password } = req.body
+  if (!(email || password)) throw new Error("Email or Password Required")
   const findUser = await User.findOne({ email: email.toLowerCase() }).exec()
   if (findUser && (await findUser.isPasswordMatched(password))) {
     const refreshToken = await generateRefreshToken(findUser?._id)
-    const updateUser = await User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
       findUser._id,
       {
         refreshToken,
@@ -48,7 +49,6 @@ const login = async (req, res) => {
 }
 
 const handelRefresh = async (req, res) => {
-  console.log("Refresh")
   const cookie = req.cookies
   if (!cookie?.refreshToken) {
     return res
@@ -116,23 +116,44 @@ const getSingleUser = async (req, res) => {
   }
 }
 
+// const updateProduct = async (req, res) => {
+//   const { title } = req.body
+//   const { id } = req.params
+//   validateMongoDbId(id)
+//   if (title) {
+//     req.body.slug = slugify(title)
+//   }
+//   const updateProduct = await Product.findOneAndUpdate({ _id: id }, req.body, {
+//     new: true,
+//   }).lean()
+//   if (!updateProduct) {
+//     throw new Error("No product found")
+//   }
+//   res.json(updateProduct)
+// }
+
 const updateUser = async (req, res) => {
   const { _id } = req.user
-  const { firstname, lastname, email, mobile } = req.body
-  const user = await User.findById(_id).exec()
-  if (!user) {
+  const updatedUser = await User.findOneAndUpdate({ _id }, req.body, {
+    new: true,
+  }).lean()
+  if (!updatedUser) {
     throw new Error("No user Found")
   }
-  if (!(firstname && lastname && email && mobile)) {
-    throw new Error("Enter all details")
-  }
+  // const user = await User.findById(_id).exec()
+  // if (!user) {
+  //   throw new Error("No user Found")
+  // }
+  // if (!(firstname && lastname && email && mobile)) {
+  //   throw new Error("Enter all details")
+  // }
 
-  user.firstname = firstname
-  user.lastname = lastname
-  user.email = email
-  user.mobile = mobile
+  // user.firstname = firstname
+  // user.lastname = lastname
+  // user.email = email
+  // user.mobile = mobile
 
-  const updatedUser = await user.save()
+  // const updatedUser = await user.save()
   return res.json({ message: `${updatedUser.firstname} updated` })
 }
 
@@ -194,6 +215,7 @@ const updatePassword = async (req, res) => {
 
 const forgotPasswordToken = async (req, res) => {
   const { email } = req.body
+  if (!email) throw new Error("Please Enter valid email address")
   const user = await User.findOne({ email })
   if (!user) throw new Error("User not found with this email")
   const token = await user.createPasswordResetToken()
@@ -228,7 +250,6 @@ const resetPassword = async (req, res) => {
   res.json({ message: "Password changed Successfully" })
 }
 
-
 module.exports = {
   createUser,
   login,
@@ -242,5 +263,5 @@ module.exports = {
   logout,
   updatePassword,
   forgotPasswordToken,
-  resetPassword
+  resetPassword,
 }

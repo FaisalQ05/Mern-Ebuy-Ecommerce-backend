@@ -3,13 +3,14 @@ const Product = require("../model/productModel")
 const User = require("../model/userModel")
 const { validateMongoDbId } = require("../utils/validateMongodbId")
 const { cloudinaryUploadImage } = require("../utils/cloudinary")
+const fs = require("fs")
 
 const createProduct = async (req, res) => {
   const { title } = req.body
   if (title) {
     req.body.slug = slugify(title)
   }
-  console.log(req.body.slug)
+  // console.log(req.body.slug)
   const product = await Product.create(req.body)
   res.json(product)
 }
@@ -108,9 +109,9 @@ const getAllProduct = async (req, res) => {
 }
 
 const addToWishList = async (req, res) => {
-  console.log("Add to fav")
   const { _id } = req.user
   const { prodId } = req.body
+  if (!prodId) throw new Error("prodId required")
   const findProd = await Product.findById(prodId).lean().exec()
   if (!findProd) throw new Error("Product not exist")
   if (!prodId || validateMongoDbId(prodId)) {
@@ -145,7 +146,6 @@ const addToWishList = async (req, res) => {
 }
 
 const rating = async (req, res) => {
-  console.log("Rating")
   const { _id } = req.user
   const { star, prodId, comment } = req.body
   if (!prodId || validateMongoDbId(prodId))
@@ -205,7 +205,7 @@ const rating = async (req, res) => {
 }
 
 const uploadImages = async (req, res) => {
-  console.log(req.files)
+  // console.log(req.files)
   const uploader = (path) => cloudinaryUploadImage(path, "images")
   const urls = []
   const files = req.files

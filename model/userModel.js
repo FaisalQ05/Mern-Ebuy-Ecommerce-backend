@@ -108,5 +108,10 @@ userSchema.methods.createPasswordResetToken = async function () {
   return resetToken
 }
 
+userSchema.pre("findOneAndUpdate", function (next) {
+  this.options.runValidators = true
+  next()
+})
+
 //Export the model
 module.exports = mongoose.model("User", userSchema)

@@ -2,7 +2,6 @@ const jwt = require("jsonwebtoken")
 const User = require("../model/userModel")
 
 const authMiddleware = (req, res, next) => {
-  
   const authHeaders = req.headers.authorization || req.headers.Authoriation
   if (!authHeaders?.startsWith("Bearer")) {
     return res.status(401).json({
@@ -20,6 +19,11 @@ const authMiddleware = (req, res, next) => {
     }
     const user = await User.findById(decode?.id)
     req.user = user
+    if (!user) {
+      return res
+        .status(400)
+        .json({ message: "no user found in db against access token" })
+    }
     next()
   })
 }

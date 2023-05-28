@@ -11,12 +11,15 @@ const {
 } = require("../controller/blogController")
 const router = express.Router()
 
-router.post("/", authMiddleware, isAdmin, createBlog)
-router.put("/:id", authMiddleware, isAdmin, updateBlog)
 router.get("/:id", getBlog)
 router.get("/", getAllBlog)
-router.delete("/:id", authMiddleware, isAdmin, deleteBlog)
-router.put("/likes/:blogId", authMiddleware, isAdmin, likeBlog)
-router.put("/dislikes/:blogId", authMiddleware, isAdmin, dislikeBlog)
+
+router.use(authMiddleware, isAdmin)
+
+router.post("/", createBlog)
+router.put("/:id", updateBlog)
+router.delete("/:id", deleteBlog)
+router.put("/likes/:blogId", likeBlog)
+router.put("/dislikes/:blogId", dislikeBlog)
 
 module.exports = router
