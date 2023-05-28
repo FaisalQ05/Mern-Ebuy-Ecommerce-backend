@@ -17,9 +17,12 @@ const multerFilter = (req, file, cb) => {
   if (file.mimetype.startsWith("image")) {
     cb(null, true)
   } else {
-    cb({
-      message: "unsupported File format",
-    })
+    cb(
+      {
+        message: "unsupported File format",
+      },
+      false
+    )
   }
 }
 
@@ -30,7 +33,9 @@ const uploadPhoto = multer({
 })
 
 const productImageResize = async (req, res, next) => {
+  // console.log("productImageResize : ", req.files)
   if (!req.files) return next()
+  // const path = []
   await Promise.all(
     req.files.map(async (file) => {
       await sharp(file.path)
@@ -38,9 +43,11 @@ const productImageResize = async (req, res, next) => {
         .toFormat("jpeg")
         .jpeg({ quality: 90 })
         .toFile(`public/images/products/${file.filename}`)
+      // path.push(`${__dirname}/public/images/products/${file.filename}`)
       fs.unlinkSync(`public/images/products/${file.filename}`)
     })
   )
+  // console.log("paths : ", path)
   next()
 }
 

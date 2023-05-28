@@ -205,8 +205,8 @@ const rating = async (req, res) => {
 }
 
 const uploadImages = async (req, res) => {
-  // console.log(req.files)
-  const uploader = (path) => cloudinaryUploadImage(path, "images")
+  // console.log("uploadImages :", req.files)
+  const uploader = (path) => cloudinaryUploadImage(path, "Ebuy/products")
   const urls = []
   const files = req.files
   for (const file of files) {

@@ -8,13 +8,14 @@ cloudinary.config({
 
 const cloudinaryUploadImage = async (fileToUpload, folder) => {
   return new Promise((resolve) => {
-    cloudinary.uploader.upload(fileToUpload, (err, result) => {
-      // console.log("result : ", result)
-      resolve(
-        { url: result.secure_url },
-        { resource_type: "auto", folder: folder }
-      )
-    })
+    cloudinary.uploader.upload(
+      fileToUpload,
+      { resource_type: "auto", folder: folder },
+      (err, result) => {
+        // console.log("result : ", result)
+        resolve({ url: result.secure_url })
+      }
+    )
   })
 }
 
