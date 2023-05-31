@@ -1,13 +1,15 @@
 const jwt = require("jsonwebtoken")
 const User = require("../model/userModel")
+const ErrorResponse = require("../utils/errorResponse")
 
 const authMiddleware = (req, res, next) => {
   const authHeaders = req.headers.authorization || req.headers.Authoriation
   if (!authHeaders?.startsWith("Bearer")) {
-    return res.status(401).json({
-      message: "Unauthorized . Please Add Header Token",
-      isError: true,
-    })
+    // return res.status(401).json({
+    //   message: "Unauthorized . Please Add Header Token",
+    //   isError: true,
+    // })
+    throw new ErrorResponse("Unauthorized . Please Add Header Token", 401)
   }
   const token = authHeaders.split(" ")[1]
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, decode) => {

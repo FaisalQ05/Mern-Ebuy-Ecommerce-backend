@@ -28,15 +28,15 @@ connectDB()
 console.log("checking : ", process.env.NODE_ENV)
 
 app.use(cors(corsOptions))
-// app.use(morgan("dev"))
 
+// if (process.env.NODE_ENV === "developement") {
+//   // app.use(morgan("dev"))
+//   // app.use(logger)
+// }
 
 //Body parser for Json
 app.use(express.json())
 app.use(cookieParser())
-
-
-app.use(logger)
 
 //Api routes
 app.use("/api/user", authRoute)
