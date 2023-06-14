@@ -17,32 +17,25 @@ const {
 } = require("../controller/userController")
 const { isAdmin, authMiddleware } = require("../middleware/authMiddleware")
 
+//public routes
 router.post("/register", createUser)
 router.post("/login", login)
 router.get("/", getAllUser)
-router.put("/update-password", authMiddleware, updatePassword)
 router.post("/forgot-password-token", forgotPasswordToken)
 router.post("/reset-password/:token", resetPassword)
+router.post("/logout", logout)
+router.get("/refresh/token", handelRefresh)
+router.delete("/:id", deleteUser)
 
-// router.post("/register", createUser)
-// router.route("/login").post(login)
-// router.route("/all").get(getAllUser)
-router
-  .route("/:id")
-  .get(authMiddleware, isAdmin, getSingleUser)
-  .delete(deleteUser)
-
+//auth routes
 router.put("/", authMiddleware, updateUser)
+router.put("/update-password", authMiddleware, updatePassword)
 
+//auth routes and admin
 router.use(authMiddleware, isAdmin)
 
+router.get("/:id", getSingleUser)
 router.post("/block-user/:id?", blockUser)
 router.post("/unblock-user/:id?", unblockUser)
-router.get("/refresh/token", handelRefresh)
-router.post("/logout", logout)
-
-// router.route("/block-user/:id?").post(authMiddleware, isAdmin, blockUser)
-// router.route("/unblock-user/:id?").post(authMiddleware, isAdmin, unblockUser)
-// router.route("/refresh").get(authMiddleware, isAdmin)
 
 module.exports = router

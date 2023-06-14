@@ -2,8 +2,7 @@ const slugify = require("slugify")
 const Product = require("../model/productModel")
 const User = require("../model/userModel")
 const { validateMongoDbId } = require("../utils/validateMongodbId")
-const { cloudinaryUploadImage } = require("../utils/cloudinary")
-const fs = require("fs")
+const { sendResponce } = require("../utils/response")
 
 const createProduct = async (req, res) => {
   const { title } = req.body
@@ -12,7 +11,7 @@ const createProduct = async (req, res) => {
   }
   // console.log(req.body.slug)
   const product = await Product.create(req.body)
-  res.json(product)
+  sendResponce(res, "Product created", product)
 }
 
 const updateProduct = async (req, res) => {
@@ -28,7 +27,7 @@ const updateProduct = async (req, res) => {
   if (!updateProduct) {
     throw new Error("No product found")
   }
-  res.json(updateProduct)
+  sendResponce(res, "Product updated", updateProduct)
 }
 
 const deleteProduct = async (req, res) => {
@@ -38,7 +37,7 @@ const deleteProduct = async (req, res) => {
   if (!deleteProduct) {
     throw new Error("No product found")
   }
-  res.json(deleteProduct)
+  sendResponce(res, "Product deleted", deleteProduct)
 }
 
 const getSingleProduct = async (req, res) => {
@@ -46,7 +45,7 @@ const getSingleProduct = async (req, res) => {
   validateMongoDbId(id)
   const product = await Product.findById(id)
   if (product) {
-    res.json(product)
+    sendResponce(res, "Single product fecthed successfully", product)
   } else {
     throw new Error("No product Found")
   }
@@ -60,13 +59,9 @@ const getAllProduct = async (req, res) => {
   // console.log(queryObj)
   const excludeFields = ["page", "sort", "limit", "fields"]
   excludeFields.forEach((el) => delete queryObj[el])
-  // console.log(queryObj, excludeFields)
-  // console.log(queryObj)
   let queryStr = JSON.stringify(queryObj)
   queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`)
   queryStr = JSON.parse(queryStr)
-  // console.log(queryStr)
-  // console.log(typeof queryStr)
   let query = Product.find(queryStr)
 
   //sorting
@@ -90,19 +85,41 @@ const getAllProduct = async (req, res) => {
 
   //pagination
 
-  const page = req.query.page
-  const limit = req.query.limit
-  const skip = (page - 1) * limit
-  query = query.skip(skip).limit(limit)
-  if (req.query.page) {
-    const productCount = await Product.countDocuments()
-    if (skip >= productCount) throw new Error("This page does not exist")
-  }
+  const page = parseInt(req.query.page, 10) || 1
+  const limit = parseInt(req.query.limit) || 25
+  const startIndex = (page - 1) * limit
+  const endIndex = page * limit
+  query = query.skip(startIndex).limit(limit)
+  const total = await Product.countDocuments()
 
   const product = await query
 
+  // Pagination result
+  const pagination = {}
+
+  if (endIndex < total) {
+    console.log("condition true one ", { endIndex, total })
+    pagination.next = {
+      page: page + 1,
+      limit,
+    }
+  }
+
+  if (startIndex > 0) {
+    console.log("condition true second ", { endIndex, total })
+    pagination.prev = {
+      page: page - 1,
+      limit,
+    }
+  }
+
   if (product.length > 0) {
-    return res.json(product)
+    return res.status(200).json({
+      success: true,
+      count: product.length,
+      pagination,
+      result: product,
+    })
   } else {
     throw new Error("No Product Found")
   }
@@ -114,9 +131,7 @@ const addToWishList = async (req, res) => {
   if (!prodId) throw new Error("prodId required")
   const findProd = await Product.findById(prodId).lean().exec()
   if (!findProd) throw new Error("Product not exist")
-  if (!prodId || validateMongoDbId(prodId)) {
-    throw new Error("Valid prodId required")
-  }
+  validateMongoDbId(prodId)
   const user = await User.findById(_id)
   const alreadAdded = user.wishList.find((id) => id.toString() === prodId)
   if (alreadAdded) {
@@ -142,7 +157,7 @@ const addToWishList = async (req, res) => {
     // res.json(user)
   }
   const updateUser = await user.save()
-  res.json(updateUser)
+  sendResponce(res, "added to user wishlist", updateUser)
 }
 
 const rating = async (req, res) => {
@@ -190,7 +205,7 @@ const rating = async (req, res) => {
     // )
     // res.json(updateProduct)
   }
-  const getAllRatings = await Product.findById(prodId)
+  const getAllRatings = await Product.findById(prodId).exec()
   let totalRating = getAllRatings.ratings.length
   let ratingSum = getAllRatings.ratings
     .map((item) => item.star)
@@ -201,25 +216,19 @@ const rating = async (req, res) => {
     { totalrating: acutalRating },
     { new: true }
   )
-  res.json(finalProduct)
+  sendResponce(res, "Product rated successfully", finalProduct)
 }
 
-const uploadImages = async (req, res) => {
-  // console.log("uploadImages :", req.files)
-  const uploader = (path) => cloudinaryUploadImage(path, "Ebuy/products")
-  const urls = []
-  const files = req.files
-  for (const file of files) {
-    const { path } = file
-    const newpath = await uploader(path)
-    console.log(newpath)
-    urls.push(newpath)
-    fs.unlinkSync(path)
-  }
-  const images = urls.map((file) => {
-    return file
-  })
-  res.json(images)
+const handleUploadImages = async (req, res) => {
+  res.status(200).json(res.imageResponse)
+}
+
+const handleDeleteImage = async (req, res) => {
+  res.status(200).json(res.imageResponse)
+}
+
+const handleDeleteAllImages = async (req, res) => {
+  res.status(200).json(res.imageResponse)
 }
 
 module.exports = {
@@ -230,5 +239,7 @@ module.exports = {
   deleteProduct,
   addToWishList,
   rating,
-  uploadImages,
+  handleUploadImages,
+  handleDeleteImage,
+  handleDeleteAllImages,
 }

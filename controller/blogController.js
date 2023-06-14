@@ -157,6 +157,19 @@ const dislikeBlog = async (req, res) => {
   }
 }
 
+const handleUploadImages = async (req, res) => {
+  res.status(200).json(res.imageResponse)
+}
+
+const handleDeleteImage = async (req, res) => {
+  res.status(200).json(res.imageResponse)
+}
+
+const handleDeleteAllImages = async (req, res) => {
+  res.status(200).json(res.imageResponse)
+}
+
+
 module.exports = {
   createBlog,
   updateBlog,
@@ -165,4 +178,7 @@ module.exports = {
   deleteBlog,
   likeBlog,
   dislikeBlog,
+  handleUploadImages,
+  handleDeleteImage,
+  handleDeleteAllImages
 }

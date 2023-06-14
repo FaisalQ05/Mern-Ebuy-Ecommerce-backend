@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken")
 const User = require("../model/userModel")
-const ErrorResponse = require("../utils/errorResponse")
+const { ErrorResponse } = require("../utils/response")
 
 const authMiddleware = (req, res, next) => {
   const authHeaders = req.headers.authorization || req.headers.Authoriation

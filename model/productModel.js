@@ -46,7 +46,7 @@ var productSchema = new mongoose.Schema(
       required: [true, "quantity is required"],
     },
     images: {
-      type: Array,
+      type: [],
     },
     color: {
       type: String,

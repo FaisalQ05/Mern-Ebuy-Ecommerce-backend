@@ -7,17 +7,21 @@ const {
 const User = require("../model/userModel")
 const { validateMongoDbId } = require("../utils/validateMongodbId")
 const { sendMail } = require("./emailController")
+const { sendResponce } = require("../utils/response")
 
+// @desc      Create User
+// @route     POST /api/user/register
+// @access    Public
 const createUser = async (req, res) => {
   const { email } = req.body
   const user = await User.create(req.body)
-  if (user) return res.json({ message: `User with ${email} created` })
-  else return res.json({ message: "Invalid user data received" })
+  if (user) sendResponce(res, `User with ${email} created`)
+  else throw new Error("Invalid user data received")
 }
 
 const login = async (req, res) => {
   const { email, password } = req.body
-  if (!(email || password)) throw new Error("Email or Password Required")
+  if (!(email && password)) throw new Error("Email or Password Required")
   const findUser = await User.findOne({ email: email.toLowerCase() }).exec()
   if (findUser && (await findUser.isPasswordMatched(password))) {
     const refreshToken = await generateRefreshToken(findUser?._id)
@@ -28,21 +32,25 @@ const login = async (req, res) => {
       },
       { new: true }
     )
-    res.cookie("refreshToken", refreshToken, {
+    const options = {
       httpOnly: true,
       secure: true,
       sameSite: "None",
       maxAge: 3 * 24 * 60 * 60 * 1000,
-    })
-
-    res.json({
+    }
+    if (process.env.NODE_ENV === "developement") {
+      options.secure = false
+    }
+    res.cookie("refreshToken", refreshToken, options)
+    const result = {
       _id: findUser._id,
       firstname: findUser.firstname,
       lastname: findUser.lastname,
       email: findUser.email,
       mobile: findUser.mobile,
       token: generateAccessToken(findUser._id),
-    })
+    }
+    sendResponce(res, "Login Successfully", result)
   } else {
     throw new Error("Invalid Credentials")
   }
@@ -57,13 +65,14 @@ const handelRefresh = async (req, res) => {
   }
   const refreshToken = cookie.refreshToken
   const user = await User.findOne({ refreshToken })
-  if (!user) throw new Error("Not found")
+  if (!user) throw new Error("Unauthorized token not found in db")
   jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decode) => {
     if (err || user.id !== decode.id) {
-      throw new Error("There is something Wrong")
+      throw new Error("Unauthorized user There is something Wrong")
     }
     const accessToken = generateAccessToken(user._id)
-    res.json({ accessToken })
+    const result = { accessToken }
+    sendResponce(res, "Refresh Successfully", result)
   })
 }
 
@@ -92,13 +101,14 @@ const logout = async (req, res) => {
     secure: true,
     sameSite: "None",
   })
-  return res.json({ message: "Logout Success" })
+  // return res.json({ message: "Logout Success" })
+  sendResponce(res, "Logout Successfully")
 }
 
 const getAllUser = async (req, res) => {
   const allUsers = await User.find().select("-password").lean()
   if (allUsers.length > 0) {
-    return res.json(allUsers)
+    sendResponce(res, "All users", allUsers)
   } else {
     throw new Error("No user Found")
   }
@@ -110,7 +120,7 @@ const getSingleUser = async (req, res) => {
 
   const singleUser = await User.findById(id).select("-password").lean()
   if (singleUser) {
-    return res.json(singleUser)
+    sendResponce(res, "Single user", singleUser)
   } else {
     throw new Error("No user Found")
   }
@@ -154,16 +164,17 @@ const updateUser = async (req, res) => {
   // user.mobile = mobile
 
   // const updatedUser = await user.save()
-  return res.json({ message: `${updatedUser.firstname} updated` })
+  // return res.json({ message: `${updatedUser.firstname} updated` })
+  sendResponce(res, `${updatedUser.firstname} updated`)
 }
 
 const deleteUser = async (req, res) => {
   const { id } = req.params
   validateMongoDbId(id)
 
-  const allUsers = await User.findByIdAndDelete(id).select("-password").lean()
-  if (allUsers) {
-    return res.json(allUsers)
+  const user = await User.findByIdAndDelete(id).select("-password").lean()
+  if (user) {
+    sendResponce(res, "user delete successfully", user)
   } else {
     throw new Error("No user Found")
   }
@@ -180,7 +191,7 @@ const blockUser = async (req, res) => {
   if (!user) {
     throw new Error("User not found")
   }
-  return res.json(user)
+  sendResponce(res, "user blocked successfully", user)
 }
 
 const unblockUser = async (req, res) => {
@@ -194,7 +205,7 @@ const unblockUser = async (req, res) => {
   if (!user) {
     throw new Error("User not found")
   }
-  return res.json(user)
+  sendResponce(res, "user un-blocked successfully", user)
 }
 
 const updatePassword = async (req, res) => {
@@ -205,11 +216,9 @@ const updatePassword = async (req, res) => {
   if (password) {
     user.password = password
     const updatedPassword = await user.save()
-    res.json(updatedPassword)
+    sendResponce(res, "password updated successfully", updatedPassword)
   } else {
-    res
-      .status(400)
-      .json({ message: "Please Enter Password to update", isError: true })
+    throw new Error("Please Enter Password to update")
   }
 }
 
@@ -228,7 +237,8 @@ const forgotPasswordToken = async (req, res) => {
     html: resetUrl,
   }
   sendMail(data)
-  res.json({ token })
+  // res.json({ token })
+  sendResponce(res, "forget password link have sended successfully", token)
 }
 
 const resetPassword = async (req, res) => {
@@ -247,7 +257,7 @@ const resetPassword = async (req, res) => {
   user.passwordResetToken = undefined
   user.passwordResetExpires = undefined
   await user.save()
-  res.json({ message: "Password changed Successfully" })
+  sendResponce(res, "Password changed Successfully")
 }
 
 module.exports = {
